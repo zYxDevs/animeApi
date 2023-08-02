@@ -348,13 +348,11 @@ def link_kaize_to_mal(
             kz_dict[kz_slug] = item
             bar()
     with alive_bar(len(kz_dict),
-                   title="Linking Kaize slug to MyAnimeList ID",
-                   spinner=None) as bar:  # type: ignore
+                       title="Linking Kaize slug to MyAnimeList ID",
+                       spinner=None) as bar:  # type: ignore
         for kz_slug, kz_item in kz_dict.items():
             if kz_slug in aod_dict:
-                aod_item: Union[dict[str, Any],
-                                None] = aod_dict.get(kz_slug, None)
-                if aod_item:
+                if aod_item := aod_dict.get(kz_slug, None):
                     # add more data from kaize
                     kz_item.update({
                         "myanimelist": aod_item["myanimelist"],
@@ -417,9 +415,7 @@ def link_kaize_to_mal(
                 value["kaize_id"] = None
             aod_list.append(value)
             bar()
-    merged: list[dict[str, Any]] = []
-    merged.extend(aod)
-
+    merged: list[dict[str, Any]] = list(aod)
     # add missing items from old AOD data
     with alive_bar(len(aod_list),
                    title="Adding missing items from old AOD data",
@@ -466,11 +462,10 @@ def link_otakotaku_to_mal(
                 aod_dict[item["title"]] = item
             bar()
     with alive_bar(len(otakotaku),
-                   title="Translating Otakotaku list to a dict with MAL ID",
-                   spinner=None) as bar:  # type: ignore
+                       title="Translating Otakotaku list to a dict with MAL ID",
+                       spinner=None) as bar:  # type: ignore
         for item in otakotaku:
-            mal_id = item["myanimelist"]
-            if mal_id:
+            if mal_id := item["myanimelist"]:
                 ot_dict[f"{mal_id}"] = {
                     "title": item["title"],
                     "otakotaku": item["otakotaku"],
@@ -488,13 +483,11 @@ def link_otakotaku_to_mal(
                 }
             bar()
     with alive_bar(len(ot_dict),
-                   title="Linking Otakotaku slug to MyAnimeList ID",
-                   spinner=None) as bar:  # type: ignore
+                       title="Linking Otakotaku slug to MyAnimeList ID",
+                       spinner=None) as bar:  # type: ignore
         for mal_id, ot_item in ot_dict.items():
             if mal_id in aod_dict:
-                aod_item: Union[dict[str, Any], None] = aod_dict.get(
-                    f"{mal_id}", None)
-                if aod_item:
+                if aod_item := aod_dict.get(f"{mal_id}", None):
                     # add more data from otakotaku
                     ot_dat = {
                         "otakotaku": ot_item["otakotaku"],
@@ -540,9 +533,7 @@ def link_otakotaku_to_mal(
                 value["otakotaku"] = None
             aod_list.append(value)
             bar()
-    merged: list[dict[str, Any]] = []
-    merged.extend(aod)
-
+    merged: list[dict[str, Any]] = list(aod)
     # add missing items from old AOD data
     with alive_bar(len(aod_list),
                    title="Adding missing items from old AOD data",
@@ -588,11 +579,10 @@ def link_silveryasha_to_mal(
                 aod_dict[item["title"]] = item
             bar()
     with alive_bar(len(silveryasha),
-                   title="Translating Silveryasha list to a dict with MAL ID",
-                   spinner=None) as bar:  # type: ignore
+                       title="Translating Silveryasha list to a dict with MAL ID",
+                       spinner=None) as bar:  # type: ignore
         for item in silveryasha:
-            mal_id = item["myanimelist"]
-            if mal_id:
+            if mal_id := item["myanimelist"]:
                 sy_dict[f"{mal_id}"] = {
                     "title": item["title"],
                     "silveryasha": item["silveryasha"],
@@ -604,13 +594,11 @@ def link_silveryasha_to_mal(
                 }
             bar()
     with alive_bar(len(sy_dict),
-                   title="Linking Silveryasha slug to MyAnimeList ID",
-                   spinner=None) as bar:  # type: ignore
+                       title="Linking Silveryasha slug to MyAnimeList ID",
+                       spinner=None) as bar:  # type: ignore
         for mal_id, sy_item in sy_dict.items():
             if mal_id in aod_dict:
-                aod_item: Union[dict[str, Any], None] = aod_dict.get(
-                    f"{mal_id}", None)
-                if aod_item:
+                if aod_item := aod_dict.get(f"{mal_id}", None):
                     # add more data from silveryasha
                     sy_dat = {
                         "silveryasha": sy_item["silveryasha"],
@@ -656,9 +644,7 @@ def link_silveryasha_to_mal(
                 value["silveryasha"] = None
             aod_list.append(value)
             bar()
-    merged: list[dict[str, Any]] = []
-    merged.extend(aod)
-
+    merged: list[dict[str, Any]] = list(aod)
     # add missing items from old AOD data
     with alive_bar(len(aod_list),
                    title="Adding missing items from old AOD data",
@@ -752,8 +738,8 @@ def combine_anitrakt(
     """Combine AniTrakt data with AOD data"""
     linked = 0
     with alive_bar(len(aod),
-                   title="Combining AniTrakt data with AOD data",
-                   spinner=None) as bar:  # type: ignore
+                       title="Combining AniTrakt data with AOD data",
+                       spinner=None) as bar:  # type: ignore
         for item in aod:
             matched = False
             myanimelist = item['myanimelist']
@@ -773,7 +759,7 @@ def combine_anitrakt(
                 trakt = anitrakt_item.get('trakt_id', None)
                 media_type = anitrakt_item.get('type', None)
                 media_season = anitrakt_item.get('season', None)
-                if myanimelist is not None and mal_id == myanimelist:
+                if mal_id == myanimelist:
                     # Combine the data from anitrakt_item with the item in aod_data
                     item.update({
                         'trakt': trakt,
@@ -810,8 +796,8 @@ def combine_fribb(
     """Combine Fribb's Animelists data with AOD data to obtain IMDb and TMDB IDs via AniDB"""
     linked = 0
     with alive_bar(len(aod),
-                   title="Combining Fribb's Animelists data with AOD data",
-                   spinner=None) as bar:  # type: ignore
+                       title="Combining Fribb's Animelists data with AOD data",
+                       spinner=None) as bar:  # type: ignore
         for item in aod:
             matched = False
             anidb = item['anidb']
@@ -831,11 +817,9 @@ def combine_fribb(
                 anidb_id = fbi.get('anidb_id', None)
                 imdb = fbi.get('imdb_id', None)
                 tmdb = fbi.get('themoviedb_id', None)
-                if anidb is not None and anidb_id == anidb:
+                if anidb_id == anidb:
                     # Combine the data from fribb_item with the item in aod_data
-                    data_fbi = {}
-                    data_fbi['imdb'] = imdb
-                    data_fbi['themoviedb'] = tmdb
+                    data_fbi = {'imdb': imdb, 'themoviedb': tmdb}
                     # if item["trakt_type"] and tmdb:
                     #     data_fbi['themoviedb'] = tmdb
                     #     data_fbi["themoviedb_type"] = "movie" if item["trakt_type"] in ["movies", "movie"] else "tv"

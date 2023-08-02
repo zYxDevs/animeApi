@@ -28,17 +28,14 @@ class DataDump:
         }
         try:
             response = req.get(self.url, headers=headers, timeout=None)
-            if response.status_code == 200:
-                return response
-            return None
+            return response if response.status_code == 200 else None
         except Exception as err:
             pprint.print(Platform.SYSTEM, Status.ERR, f"Error: {err}")
             return None
 
     def dumper(self) -> Any:
         """Dump the data to json file"""
-        response = self._get()
-        if response:
+        if response := self._get():
             content = response.json() if self.file_type == "json" else response.text
             if self.file_type == "json":
                 with open(f"database/raw/{self.file_name}.json", "w", encoding="utf-8") as file:

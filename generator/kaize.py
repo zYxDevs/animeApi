@@ -47,16 +47,14 @@ class Kaize:
         }
         if self.xsrf_token:
             headers["X-XSRF-TOKEN"] = self.xsrf_token
-            self.cookies = "XSRF-TOKEN=" + self.xsrf_token
+            self.cookies = f"XSRF-TOKEN={self.xsrf_token}"
         if self.session and self.xsrf_token and self.cookies == "":
             # set cookie
             self.cookies = f"kaize_session={self.session}; XSRF-TOKEN={self.xsrf_token}"
         headers["Cookie"] = self.cookies
         try:
             response = req.get(url, headers=headers, timeout=15)
-            if response.status_code == 200:
-                return response
-            return None
+            return response if response.status_code == 200 else None
         except Exception as err:
             pprint.print(Platform.KAIZE, Status.ERR, f"Error: {err}")
             return None
@@ -74,12 +72,10 @@ class Kaize:
         if self.xsrf_token:
             headers["X-XSRF-TOKEN"] = self.xsrf_token
         if header:
-            headers.update(header)
+            headers |= header
         try:
             response = req.post(url, headers=headers, data=data, timeout=15)
-            if response.status_code == 200 or response.status_code == 302:
-                return response
-            return None
+            return response if response.status_code in {200, 302} else None
         except Exception as err:
             pprint.print(Platform.KAIZE, Status.ERR, f"Error: {err}")
             return None
@@ -112,16 +108,14 @@ class Kaize:
             f"password={self.password}",
         ]
         data: str = "&".join(data_raw)
-        response = self._post(f"{base_url}", data, header_login)
-        if not response:
+        if response := self._post(f"{base_url}", data, header_login):
+            return (
+                response.headers["Set-Cookie"].split(",")[0].split(";")[0]
+                + "; "
+                + response.headers["Set-Cookie"].split(",")[2].split(";")[0]
+            )
+        else:
             raise ConnectionError("Unable to connect to kaize.io")
-        # set cookie
-        cookie = (
-            response.headers["Set-Cookie"].split(",")[0].split(";")[0] +
-            "; " +
-            response.headers["Set-Cookie"].split(",")[2].split(";")[0]
-        )
-        return cookie
 
     def pages(self, media: Literal['anime', 'manga'] = 'anime') -> int:
         """Get the total pages"""
@@ -132,7 +126,7 @@ class Kaize:
         pgTens = True
         pgOnes = True
         kzpg = 0
-        while pgHundreds is True:
+        while pgHundreds:
             pprint.print(
                 Platform.KAIZE,
                 Status.INFO,
@@ -156,7 +150,7 @@ class Kaize:
                 pgHundreds = False
 
         kzp = kzpg + 10
-        while pgTens is True:
+        while pgTens:
             pprint.print(
                 Platform.KAIZE,
                 Status.INFO,
@@ -180,7 +174,7 @@ class Kaize:
                 pgTens = False
 
         kzp = kzpg + 1
-        while pgOnes is True:
+        while pgOnes:
             pprint.print(
                 Platform.KAIZE,
                 Status.INFO,
@@ -229,10 +223,7 @@ class Kaize:
             # background-image: url(https://kaize.io/images/animes_images/2022/anime_image_6289_14_22_44.jpg)
             media_id = kz.find("div", {"class": "cover"}).get("style")
             media_id = re.search(r"/anime_image_(\d+)", media_id)
-            if media_id:
-                media_id = media_id.group(1)
-            else:
-                media_id = 0
+            media_id = media_id[1] if media_id else 0
             result.append({
                 "rank": int(rank),
                 "title": title,
@@ -274,7 +265,5 @@ class Kaize:
     @staticmethod
     def convert_list_to_dict(data: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """Convert list of dict to dict"""
-        result: dict[str, dict[str, Any]] = {}
-        for item in data:
-            result[item["slug"]] = item
+        result: dict[str, dict[str, Any]] = {item["slug"]: item for item in data}
         return result
