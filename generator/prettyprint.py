@@ -97,9 +97,7 @@ class PrettyPrint:
     def _format_to_hex(self, enums: Platform | Status) -> str:
         """Format the platform"""
         col = translate_hex_to_rgb(enums.value)
-        sp = "  "
-        if isinstance(enums, Platform):
-            sp = " "
+        sp = " " if isinstance(enums, Platform) else "  "
         return f"\033[48;2;{col[0]};{col[1]};{col[2]}m{sp}{enums.name}{sp}\033[0m"
 
     def print(
@@ -121,7 +119,7 @@ class PrettyPrint:
         elif self.previously_clear:
             anullen = "\n"
             self.previously_clear = False
-        cr_ = "\r" if end == "" else ""
+        cr_ = "\r" if not end else ""
         print(
             f"{anullen}{cr_}{self._format_date()}{self._format_to_hex(platform)} {self._format_to_hex(status)} {sep.join(args)}",
             end=end,

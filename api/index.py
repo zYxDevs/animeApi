@@ -73,9 +73,7 @@ def heartbeat():
             "request_time": f"{round(end - g.start, 3)}s",
             "request_epoch": g.start,
         })
-    except FileNotFoundError:
-        return jsonify(corrupted_msg), 500
-    except KeyError:
+    except (FileNotFoundError, KeyError):
         return jsonify(corrupted_msg), 500
 
 
@@ -217,7 +215,7 @@ def platform_array(platform: str = "animeapi"):
     if route.endswith(".json"):
         route = route.replace(".json", "")
     if not route.endswith("()") and platform != "animeapi":
-        platform = platform + "_object"
+        platform += "_object"
     if platform == "syobocal":
         platform = "shoboi"
     return redirect(

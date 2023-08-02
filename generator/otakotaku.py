@@ -46,9 +46,7 @@ class OtakOtaku:
         """Get the response from the url"""
         try:
             response = req.get(url, headers=self.headers, timeout=15)
-            if response.status_code == 200:
-                return response
-            return None
+            return response if response.status_code == 200 else None
         except Exception as err:
             pprint.print(Platform.OTAKOTAKU, Status.ERR, f"Error: {err}")
             return None
@@ -98,7 +96,7 @@ class OtakOtaku:
         ann = data.get('ann_id_anime', None)
         if ann:
             ann = int(ann)
-        result = {
+        return {
             'otakotaku': int(data['id_anime']),
             'title': data['judul_anime'],
             'myanimelist': mal,
@@ -106,7 +104,6 @@ class OtakOtaku:
             'anidb': anidb,
             'animenewsnetwork': ann,
         }
-        return result
 
     def get_anime(self) -> list[dict[str, Any]]:
         """Get complete anime data"""
@@ -121,7 +118,7 @@ class OtakOtaku:
             latest_id = self.get_latest_anime()
             if not latest_id:
                 raise ConnectionError("Failed to connect to otakotaku.com")
-            if not datetime.now().day in [1, 15] and len(anime_list) > 0:
+            if datetime.now().day not in [1, 15] and len(anime_list) > 0:
                 with open(latest_file_path, "r", encoding="utf-8") as file:
                     latest = int(file.read().strip())
                 if latest == latest_id:
@@ -131,7 +128,7 @@ class OtakOtaku:
                         "Data is up to date, loading from local file",
                     )
                     return anime_list
-                latest = latest + 1
+                latest += 1
             else:
                 latest = 1
             with alive_bar(latest_id, title="Getting data", spinner=None) as bar:  # type: ignore
@@ -170,7 +167,7 @@ class OtakOtaku:
     @staticmethod
     def convert_list_to_dict(data: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         """Convert list to dict"""
-        result: dict[str, dict[str, Any]] = {}
-        for item in data:
-            result[str(item['otakotaku'])] = item
+        result: dict[str, dict[str, Any]] = {
+            str(item['otakotaku']): item for item in data
+        }
         return result
